@@ -1,10 +1,9 @@
-// Working final version
 #include <stdbool.h>
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
 #include <unistd.h>
-
+// libs for anomaly 
 #include <cmath>
 #include <bits/stdc++.h>
 using namespace std;
@@ -20,6 +19,7 @@ double distance(double a, double b)
 // Function to sort an array to find the median of an array
 void array_sort(double *array, int n)
 {
+    // sorts array ascending way
     // declare some local variables
     int i = 0, j = 0, temp = 0;
 
@@ -36,15 +36,10 @@ void array_sort(double *array, int n)
         }
     }
 
-    // printf("\nThe array after sorting is..\n");
-    // for (i = 0; i < n; i++)
-    // {
-    //     printf("\narray_1[%d] : %f", i, array[i]);
-    // }
 }
 
 vector<int> annomalyPoints(double points[])
-{
+{   // 
     double max, d;
     int foo1, foo2;
     //double points[3] = {4, 5, 10}
@@ -66,14 +61,8 @@ vector<int> annomalyPoints(double points[])
         annomalies.push_back(foo1);
         annomalies.push_back(foo2);
 
-        // annomalies[2 * i] = foo1;
-        // annomalies[2 * i + 1] = foo2;
-        // cout <<max<<"  " <<foo1 << " " << foo2 <<endl;
-
-        // cout << max << endl;
+      
     }
-    // for(int i = 0; i < 6; i++)
-    // cout<<annomalies[i];
     return annomalies;
 }
 
@@ -210,7 +199,7 @@ bool is_burst(double altitude, double acc)
     return burst;
 }
 
-//  patachute realese logic
+//  parachute realese logic
 bool parachute_engage = false;
 bool parachute_rel = false;
 bool parachute_relief(double altitude, bool burst)
@@ -236,9 +225,9 @@ bool parachute_relief(double altitude, bool burst)
 }
 
 int main()
-{   
-    //// altitude anomaly detection 
-    double altitudes[3] = {8.0, 9.0, 105.0};  // TODO replace with real altitude data
+{
+    //// altitude anomaly detection
+    double altitudes[3] = {8.0, 9.0, 105.0}; // TODO replace with real altitude data
     vector<int> annomaly_points;
 
     annomaly_points.clear();
@@ -258,11 +247,9 @@ int main()
     bool ballon_sep = false;
     bool parachute_rel = false;
     bool beep_beep = false;
-    //  step 2
 
-    // #flag is true if the acceleration is higher than 5
-
-    // declare some local variables
+    // testing by mock variables 
+    // #TODO these values should be replaced by real data of accelerarion and altitude
     int acc_mock[32] = {5, 5, 5, 5, 5, 4, 4, 4, 3, 3, 3, 4, 9, 9, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
     double alt_mock[5] = {1000, 8000, 20000, 5000, 2000};
     for (int i = 0; i < 33; i++)
@@ -279,9 +266,6 @@ int main()
         if (parachute_relief(alt_mock[i], burst))
             break;
     }
-
-    // Now pass the sorted array to calculate
-    // the median of your array.
 
     return 0;
 }
