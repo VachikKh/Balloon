@@ -13,7 +13,7 @@ return std::chrono::duration_cast<std::chrono::milliseconds>(time).count();
 }
 
 // Function to sort an array to find the median of an array
-void Array_sort(double *array, int n)
+void array_sort(double *array, int n)
 {
     // declare some local variables
     int i = 0, j = 0, temp = 0;
@@ -39,7 +39,7 @@ void Array_sort(double *array, int n)
 }
 
 // function to calculate the median of the array
-float Find_median(double array[], int n)
+float find_median(double array[], int n)
 {
     float median = 0;
 
@@ -63,13 +63,22 @@ double prev_acc = -1;
 double acc_list[10] = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 unsigned int curr_acc_ind = 0;
 
-bool IsBurst(double acc)
+bool is_burst(double altitude, double acc)
 {
     acc_list[curr_acc_ind++ % 10] = acc;
     int n = 10; // the lenght of an array
     float median = 0;
 
-    
+    // ##############################
+    // # if the ballon goes too high#
+    // ##############################
+    if (altitude >= 33333)
+        {
+            printf("balloon released \n");
+        burst = true;
+        return burst;
+        }
+
     // Sort the array in ascending order
    double copied[10];
    int loop;
@@ -77,11 +86,11 @@ bool IsBurst(double acc)
    for(loop = 0; loop < 10; loop++) {
       copied[loop] = acc_list[loop];
    }
-    Array_sort(copied, n);
+    array_sort(copied, n);
 
     // Now pass the sorted array to calculate
     // the median of your array.
-    double curr_acc = Find_median(acc_list, n);
+    double curr_acc = find_median(acc_list, n);
     printf("curr acc = %f  prev acc = %f", curr_acc, prev_acc);
     if ((0<=curr_acc && curr_acc<=4) && (0<=prev_acc && prev_acc<=4))
     {
@@ -130,11 +139,11 @@ int main()
 
     // declare some local variables
     int acc_mock[32] = {5, 5, 5, 5, 5, 4, 4, 4, 3,3,3,4,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2};
-
+    double alt_mock = 40000;
     for(int i = 0; i < 33; i++) {
         sleep(1);
         printf("**\n");
-        burst = IsBurst(acc_mock[i]);
+        burst = is_burst(alt_mock, acc_mock[i]);
         printf("Burst: %d \n",burst);
         // printf("time %lu \n", millis());
         if (burst) break;
