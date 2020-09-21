@@ -127,6 +127,30 @@ bool is_burst(double altitude, double acc)
     return burst;
 }   
 
+    
+bool parachute_engage = false;
+bool parachute_rel = false;
+bool parachute_relief(double altitude, bool burst)
+{
+    
+    // # condition for descending open up the parachute 
+    if (parachute_engage && altitude <= 5000)
+    {   printf("parachute is open now \n");
+        parachute_rel = true;
+    }
+    // # check if you once passed 6000 metre means you are ascending
+    if (not parachute_engage && altitude >=7000)
+    {
+        printf("you have passed 7000 m, parachute is closed \n");
+        parachute_engage = true;
+    }
+    // # additional condition 
+    if (burst && altitude <= 5000)
+        parachute_rel = true;
+    
+    return parachute_rel;
+}
+
 int main()
 {
     bool camer_charge = true;
@@ -139,14 +163,18 @@ int main()
 
     // declare some local variables
     int acc_mock[32] = {5, 5, 5, 5, 5, 4, 4, 4, 3,3,3,4,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2};
-    double alt_mock = 40000;
+    double alt_mock[5] = {1000, 8000, 20000, 5000, 2000};
     for(int i = 0; i < 33; i++) {
         sleep(1);
         printf("**\n");
-        burst = is_burst(alt_mock, acc_mock[i]);
-        printf("Burst: %d \n",burst);
+        if (not burst)
+            burst = is_burst(alt_mock[i], acc_mock[i]);
+        parachute_relief(alt_mock[i], burst);
+        // printf(f"altitude:{alt}\n");
+
+        printf("altitude: %f \n", alt_mock[i]);
         // printf("time %lu \n", millis());
-        if (burst) break;
+        if (parachute_relief(alt_mock[i], burst)) break;
     }
     
     // Now pass the sorted array to calculate
