@@ -228,8 +228,8 @@ int main()
 {
     //// altitude anomaly detection
     double altitudes[3] = {8.0, 9.0, 105.0}; // TODO replace with real altitude data
-    vector<int> annomaly_points;
-
+    vector<int> annomaly_points; // anomaly candidate indexes 
+    
     annomaly_points.clear();
     annomaly_points = annomalyPoints(altitudes);
     double annomaly_points_arr[6];
