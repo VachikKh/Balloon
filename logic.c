@@ -152,20 +152,6 @@ bool parachute_relief(double altitude, bool burst)
 
 int main()
 {
-    //// altitude anomaly detection
-    // double altitudes[3] = {8.0, 9.0, 105.0}; // TODO replace with real altitude data
-    // vector<int> annomaly_points;
-
-    // annomaly_points.clear();
-    // annomaly_points = annomalyPoints(altitudes);
-    // double annomaly_points_arr[6];
-    // for (int i = 0; i < 6; i++)
-    //     annomaly_points_arr[i] = annomaly_points[i];
-
-    // int n = sizeof(annomaly_points_arr) / sizeof(annomaly_points_arr[0]);
-    // int annomaly_ind = mostFrequent(annomaly_points_arr, n);
-    // altitudes[annomaly_ind] = 0;
-    // double altitude = (altitudes[0] + altitudes[1] + altitudes[2]) / 2;
     double altitude = 1000;
     printf("altitude without annomaly %f \n", altitude);
 
