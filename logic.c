@@ -3,9 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <unistd.h>
-// libs for anomaly 
-#include <cmath>
-#include <bits/stdc++.h>
+
 using namespace std;
 
 
