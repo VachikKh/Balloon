@@ -8,13 +8,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////this part is for anomaly detection from 3 points ///////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-double distance(double a, double b)
-{
-    return abs(a - b);
-}
 
 // Function to sort an array to find the median of an array
 void array_sort(double *array, int n)
@@ -37,71 +30,6 @@ void array_sort(double *array, int n)
     }
 
 }
-
-vector<int> annomalyPoints(double points[])
-{   // 
-    double max, d;
-    int foo1, foo2;
-    //double points[3] = {4, 5, 10}
-    vector<int> annomalies;
-    for (int i = 0; i < 3; i++)
-    {
-        max = 0;
-        for (int j = 0; j < 3; j++)
-        {
-            d = distance(points[i], points[j]);
-            if (d > max)
-            {
-                max = d;
-                foo1 = i;
-                foo2 = j;
-            }
-        }
-
-        annomalies.push_back(foo1);
-        annomalies.push_back(foo2);
-
-      
-    }
-    return annomalies;
-}
-
-int mostFrequent(double arr[], int n)
-{
-    // Sort the array
-    array_sort(arr, n);
-
-    // find the max frequency using linear traversal
-    int max_count = 1, res = arr[0], curr_count = 1;
-    for (int i = 1; i < n; i++)
-    {
-        if (arr[i] == arr[i - 1])
-            curr_count++;
-
-        else
-        {
-            if (curr_count > max_count)
-            {
-                max_count = curr_count;
-                res = arr[i - 1];
-            }
-            curr_count = 1;
-        }
-    }
-
-    // If last element is most frequent
-    if (curr_count > max_count)
-    {
-        max_count = curr_count;
-        res = arr[n - 1];
-    }
-
-    return res;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////anomaly detection ends here ////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned long millis()
 {
@@ -227,19 +155,20 @@ bool parachute_relief(double altitude, bool burst)
 int main()
 {
     //// altitude anomaly detection
-    double altitudes[3] = {8.0, 9.0, 105.0}; // TODO replace with real altitude data
-    vector<int> annomaly_points;
+    // double altitudes[3] = {8.0, 9.0, 105.0}; // TODO replace with real altitude data
+    // vector<int> annomaly_points;
 
-    annomaly_points.clear();
-    annomaly_points = annomalyPoints(altitudes);
-    double annomaly_points_arr[6];
-    for (int i = 0; i < 6; i++)
-        annomaly_points_arr[i] = annomaly_points[i];
+    // annomaly_points.clear();
+    // annomaly_points = annomalyPoints(altitudes);
+    // double annomaly_points_arr[6];
+    // for (int i = 0; i < 6; i++)
+    //     annomaly_points_arr[i] = annomaly_points[i];
 
-    int n = sizeof(annomaly_points_arr) / sizeof(annomaly_points_arr[0]);
-    int annomaly_ind = mostFrequent(annomaly_points_arr, n);
-    altitudes[annomaly_ind] = 0;
-    double altitude = (altitudes[0] + altitudes[1] + altitudes[2]) / 2;
+    // int n = sizeof(annomaly_points_arr) / sizeof(annomaly_points_arr[0]);
+    // int annomaly_ind = mostFrequent(annomaly_points_arr, n);
+    // altitudes[annomaly_ind] = 0;
+    // double altitude = (altitudes[0] + altitudes[1] + altitudes[2]) / 2;
+    double altitude = 1000;
     printf("altitude without annomaly %f \n", altitude);
 
     //////////////////////////// logic part is here /////////////////////
