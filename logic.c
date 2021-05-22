@@ -58,13 +58,17 @@ unsigned long stop = 0;
 int counter = 0;
 double prev_acc = -1;
 // the array we want to find the median
-double acc_list[10] = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+double acc_list[3] = {10, 10, 10};
+double altitude_list[3] = {0, 0, 0};
+
 unsigned int curr_acc_ind = 0;
+unsigned int curr_alt_ind = 0;
+
 
 bool is_burst(double altitude, double acc)
 {
-    acc_list[curr_acc_ind++ % 10] = acc;
-    int n = 10; // the lenght of an array
+    int n = 3; // the lenght of an array
+    acc_list[curr_acc_ind++%3] = acc;
     float median = 0;
 
     // ##############################
@@ -78,18 +82,17 @@ bool is_burst(double altitude, double acc)
     }
 
     // Sort the array in ascending order
-    double copied[10];
-    int loop;
-
-    for (loop = 0; loop < 10; loop++)
+    double copied_acc[3];
+    int loop = 0;
+    for (loop = 0; loop < 3; loop++)
     {
-        copied[loop] = acc_list[loop];
+        copied_acc[loop] = acc_list[loop];
     }
-    array_sort(copied, n);
+    array_sort(copied_acc, n);
 
     // Now pass the sorted array to calculate
     // the median of your array.
-    double curr_acc = find_median(acc_list, n);
+    double curr_acc = find_median(copied_acc, n);
     printf("curr acc = %f  prev acc = %f", curr_acc, prev_acc);
     if ((0 <= curr_acc && curr_acc <= 4) && (0 <= prev_acc && prev_acc <= 4))
     {
@@ -106,7 +109,7 @@ bool is_burst(double altitude, double acc)
             stop = millis();
             //  if 1 sec continious free falling
             printf("time diff: %lu \n", stop - start);
-            if (stop - start > 5000)
+            if (stop - start > 1000)
             {
 
                 printf("descending 1 second in a row of \n");
@@ -128,19 +131,21 @@ bool is_burst(double altitude, double acc)
 //  parachute realese logic
 bool parachute_engage = false;
 bool parachute_rel = false;
+
 bool parachute_relief(double altitude, bool burst)
-{ // if ballon goes up from 7000 m then comes down to 5000 m than the parachute is realesed
+{ // if ballon goes up from 6000 m then comes down to 5000 m than the parachute is realesed
 
     // # condition for descending open up the parachute
-    if (parachute_engage && altitude <= 5000)
+    printf("curr altitude: %f \n", altitude);
+    if (parachute_engage && (altitude <= 5000))
     {
         printf("parachute is open now \n");
         parachute_rel = true;
     }
     // # check if you once passed 6000 metre means you are ascending
-    if (not parachute_engage && altitude >= 7000)
+    if (not parachute_engage && altitude >= 6000)
     {
-        printf("you have passed 7000 m, parachute is closed \n");
+        printf("you have passed 6000 m, parachute is closed \n");
         parachute_engage = true;
     }
     // # additional condition
@@ -152,8 +157,8 @@ bool parachute_relief(double altitude, bool burst)
 
 int main()
 {
-    double altitude = 1000;
-    printf("altitude without annomaly %f \n", altitude);
+    // double altitude = 1000;
+    // printf("altitude without annomaly %f \n", altitude);
 
     //////////////////////////// logic part is here /////////////////////
     bool camer_charge = true;
@@ -163,20 +168,40 @@ int main()
 
     // testing by mock variables 
     // #TODO these values should be replaced by real data of accelerarion and altitude
-    int acc_mock[32] = {5, 5, 5, 5, 5, 4, 4, 4, 3, 3, 3, 4, 9, 9, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
-    double alt_mock[5] = {1000, 8000, 20000, 5000, 2000};
+    double acc_mock[38] = {9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 7, 11, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,1, 9.8, 9.8, 9.4, 9.5, 9.5};
+    double alt_mock[38] = {50, 100, 200, 1000, 2000, 3000, 4000, 5000, 6000, 9000, 10000, 12000, 18000, 15000, 12000, 11000, 10000, 8000, 7000, 5000, 4000, 2000, 1000, 500, 200, 100, 50, 40, 30, 20, 10, 9, 8, 7, 6, 5, 4};
     for (int i = 0; i < 33; i++)
     {
         sleep(1);
+        ////////////////////// accumulating altitude list //////////////
         printf("**\n");
+        altitude_list[curr_alt_ind++%3] = alt_mock[i];
+        int n = 3; // the lenght of an array
+        double copied_alt[3];
+        int loop;
+
+        for (loop = 0; loop < 3; loop++)
+        {
+            copied_alt[loop] = altitude_list[loop];
+        }
+
+        array_sort(copied_alt, n);
+        // Now pass the sorted array to calculate
+        // the median of your array.
+        double curr_alt = find_median(copied_alt, n);
+
+        //////////////////////////////////////////////////
+
         if (not burst)
-            burst = is_burst(alt_mock[i], acc_mock[i]);
-        parachute_relief(alt_mock[i], burst);
+            burst = is_burst(curr_alt, acc_mock[i]);
+        printf("burst %d : ", burst);
+
+        parachute_relief(curr_alt, burst);
         // printf(f"altitude:{alt}\n");
 
-        printf("altitude: %f \n", alt_mock[i]);
+      
         // printf("time %lu \n", millis());
-        if (parachute_relief(alt_mock[i], burst))
+        if (parachute_relief(curr_alt, burst))
             break;
     }
 
