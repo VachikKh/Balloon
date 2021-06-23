@@ -35,6 +35,8 @@ using namespace std;
 #define CHUTE_RLS_LOG_PIN  35 
 
 #define ENABLE_SERIAL 0
+#define RESET_STATE_VARS_IN_EEPROM 0
+
 #if ENABLE_SERIAL == 1
 #define SERIAL_BEGIN(x)    Serial.begin(x)
 #define SERIAL_PRINT(x)    Serial.print(x)
@@ -82,9 +84,36 @@ double BAILOUT_TOP_ACCEL = 4.5;
 int BAILOUT_BOTTOM_ACCEL = 0;
 double FREE_FALL_TIME = 800;
 
+enum EEPROM_VAR
+{
+  EEPROM_FILE_COUNT,
+  EEPROM_BURST,
+  EEPROM_PARACHUTE_ENGAGE,
+  EEPROM_PARACHUTE_REL
+};
+
+void reset_state_vars_in_eeprom()
+{
+  EEPROM.write(EEPROM_FILE_COUNT, 0); // file_count
+  EEPROM.write(EEPROM_BURST, 0); // burst = false;
+  EEPROM.write(EEPROM_PARACHUTE_ENGAGE, 0); // parachute_engage = false;
+  EEPROM.write(EEPROM_PARACHUTE_REL, 0); // parachute_rel = false;
+}
+
+void read_state_vars_from_eeprom()
+{
+  burst = EEPROM.read(EEPROM_BURST);
+  parachute_engage = EEPROM.read(EEPROM_PARACHUTE_ENGAGE);
+  parachute_rel = EEPROM.read(EEPROM_PARACHUTE_REL);
+}
 
 void setup() {
-  wdt_enable(WDTO_15MS);
+  wdt_enable(WDTO_8S);
+#if RESET_STATE_VARS_IN_EEPROM == 1
+  reset_state_vars_in_eeprom();
+#endif
+  read_state_vars_from_eeprom();
+  
   SERIAL_BEGIN(9600);   //  PC
   //******** Initialize SD CARD *************
   SERIAL_PRINTLN("Starting AYAS Balloon v0.2");
@@ -410,6 +439,7 @@ void parachute_relief(double altitude, bool burst)
     {
         SERIAL_PRINTLN("you have passed 6000 m, parachute is closed ");
         parachute_engage = true;
+	EEPROM.update(EEPROM_PARACHUTE_ENGAGE, parachute_engage);
     }
     // # additional condition
     if (burst && (altitude <= PARACHUTE_OPEN_ALTITUDE))
@@ -483,16 +513,20 @@ void loop() {
   
 ////////////////////////////////////////////////////
 
-  if (not burst)
+  if (not burst) {
       is_burst(curr_alt, accel);
+      EEPROM.update(EEPROM_BURST, burst);
+  }
 //  SERIAL_PRINT("burst: ");
 //  SERIAL_PRINTLN(burst);
-  if (not parachute_rel)
+  if (not parachute_rel) {
     parachute_relief(curr_alt, burst);
+    EEPROM.update(EEPROM_PARACHUTE_REL, parachute_rel);
+  }
 
 //serial_debug();
    if(burst)
-       { 
+       {
 //     keep power of balloon rel high 5 sec, then turn off
 
          if (keep_balloon_burst_power_pin_high)
