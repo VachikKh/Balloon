@@ -54,7 +54,13 @@ File logFile;
 String filename;
 //int log_write_count=0;
 
+
+// state variables that need to be saved between resets
 bool burst = false;
+bool parachute_engage = false;
+bool parachute_rel = false;
+
+
 bool free_fall = false;
 
 unsigned long start = 0;
@@ -76,9 +82,6 @@ double BAILOUT_TOP_ACCEL = 4.5;
 int BAILOUT_BOTTOM_ACCEL = 0;
 double FREE_FALL_TIME = 800;
 
-//  parachute realese logic
-bool parachute_engage = false;
-bool parachute_rel = false;
 
 void setup() {
   wdt_enable(WDTO_15MS);
