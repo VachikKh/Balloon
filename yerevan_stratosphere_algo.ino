@@ -35,7 +35,7 @@ using namespace std;
 #define CHUTE_RLS_LOG_PIN  35 
 
 #define ENABLE_SERIAL 0
-#define RESET_STATE_VARS_IN_EEPROM 0
+#define RESET_STATE_VARS_IN_EEPROM 0 // WARNING SET 1 AND THAN 0 BEFORE FLIGHT
 
 #if ENABLE_SERIAL == 1
 #define SERIAL_BEGIN(x)    Serial.begin(x)
@@ -61,7 +61,8 @@ String filename;
 bool burst = false;
 bool parachute_engage = false;
 bool parachute_rel = false;
-
+bool keep_balloon_burst_power_pin_high = true;
+bool keep_parachute_rel_power_pin_high = true;
 
 bool free_fall = false;
 
@@ -89,7 +90,9 @@ enum EEPROM_VAR
   EEPROM_FILE_COUNT,
   EEPROM_BURST,
   EEPROM_PARACHUTE_ENGAGE,
-  EEPROM_PARACHUTE_REL
+  EEPROM_PARACHUTE_REL,
+  EEPROM_keep_balloon_burst_power_pin_high,
+  EEPROM_keep_parachute_rel_power_pin_high
 };
 
 void reset_state_vars_in_eeprom()
@@ -98,6 +101,8 @@ void reset_state_vars_in_eeprom()
   EEPROM.write(EEPROM_BURST, 0); // burst = false;
   EEPROM.write(EEPROM_PARACHUTE_ENGAGE, 0); // parachute_engage = false;
   EEPROM.write(EEPROM_PARACHUTE_REL, 0); // parachute_rel = false;
+  EEPROM.write(EEPROM_keep_balloon_burst_power_pin_high, 1); 
+  EEPROM.write(EEPROM_keep_parachute_rel_power_pin_high, 1); 
 }
 
 void read_state_vars_from_eeprom()
@@ -105,6 +110,8 @@ void read_state_vars_from_eeprom()
   burst = EEPROM.read(EEPROM_BURST);
   parachute_engage = EEPROM.read(EEPROM_PARACHUTE_ENGAGE);
   parachute_rel = EEPROM.read(EEPROM_PARACHUTE_REL);
+  keep_balloon_burst_power_pin_high = EEPROM.read(EEPROM_keep_balloon_burst_power_pin_high); 
+  keep_parachute_rel_power_pin_high = EEPROM.read(EEPROM_keep_parachute_rel_power_pin_high); 
 }
 
 void setup() {
@@ -455,8 +462,6 @@ void parachute_relief(double altitude, bool burst)
 double curr_alt = 0;
 bool beep_status = false;
 unsigned long last_time =0;
-bool keep_balloon_burst_power_pin_high = true;
-bool keep_parachute_rel_power_pin_high = true;
 //int count = 0;
 long log_count = 0;
 
@@ -541,6 +546,7 @@ void loop() {
               delay(2000);
               digitalWrite(BALLOON_BURST_PIN, LOW);
               keep_balloon_burst_power_pin_high = false;
+              EEPROM.update(EEPROM_keep_balloon_burst_power_pin_high, keep_balloon_burst_power_pin_high);
          }
        }
 
@@ -559,6 +565,7 @@ void loop() {
               delay(2000);
               digitalWrite(CHUTE_RLS_PIN, LOW);
               keep_parachute_rel_power_pin_high = false;
+              EEPROM.update(EEPROM_keep_parachute_rel_power_pin_high, keep_parachute_rel_power_pin_high);
          }
 
      // BEEP BEEP every 200 milisecond 
