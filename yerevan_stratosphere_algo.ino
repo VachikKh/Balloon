@@ -145,6 +145,7 @@ void setup() {
   SERIAL_PRINT("done. ");
   delay(500);
   SERIAL_PRINT("Log file: ");
+  wdt_reset();
 
   String filename = getFilename();
   SERIAL_PRINT(filename);
@@ -163,6 +164,7 @@ void setup() {
     SERIAL_PRINTLN("Failed!");
     while (1) {
       delay(10);
+      wdt_reset();
     }
   }
   
@@ -173,6 +175,7 @@ void setup() {
   SERIAL_PRINT("MS5611... ");
   while(!ms5611_baro.begin(MS5611_ULTRA_HIGH_RES)) {
     delay(500);
+    wdt_reset();
   }
   SERIAL_PRINTLN("done. ");
   
@@ -184,6 +187,7 @@ void setup() {
   delay(50);
   digitalWrite(BEEP_PIN, LOW);
   delay(2000);
+  wdt_reset();
   logFile = SD.open(filename, FILE_WRITE);
   digitalWrite(SETUP_LED_PIN, LOW);
   digitalWrite(CHARGE_PWR_PIN, HIGH);
