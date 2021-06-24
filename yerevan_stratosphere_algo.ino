@@ -79,7 +79,7 @@ unsigned int curr_alt_ind = 0;
 
 int PARACHUTE_OPEN_ALTITUDE = 5000;
 int PARACHUTE_ENGAGE_ALTITUDE = 5500;
-int BALLOON_BURST_ALTITUDE = 25000;
+int BALLOON_BURST_ALTITUDE = 30000;
 double BAILOUT_TOP_ACCEL = 4.5;
 int BAILOUT_BOTTOM_ACCEL = 0;
 double FREE_FALL_TIME = 800;
@@ -96,7 +96,7 @@ enum EEPROM_VAR
 
 void reset_state_vars_in_eeprom()
 {
-    EEPROM.write(EEPROM_FILE_COUNT, 0);       // file_count
+    // EEPROM.write(EEPROM_FILE_COUNT, 0);       // file_count
     EEPROM.write(EEPROM_BURST, 0);            // burst = false;
     EEPROM.write(EEPROM_PARACHUTE_ENGAGE, 0); // parachute_engage = false;
     EEPROM.write(EEPROM_PARACHUTE_REL, 0);    // parachute_rel = false;
@@ -195,6 +195,16 @@ void setup()
     }
     SERIAL_PRINTLN("done. ");
 
+    double realTemperature = ms5611_baro.readTemperature(true);
+    long realPressure = ms5611_baro.readPressure(true);
+    double realAltitude = ms5611_baro.getAltitude(realPressure);
+
+    altitude_list[0] = realAltitude;
+    altitude_list[1] = realAltitude;
+    altitude_list[2] = realAltitude;
+    altitude_list[3] = realAltitude;
+    altitude_list[4] = realAltitude;
+    
     digitalWrite(BEEP_PIN, HIGH);
     delay(50);
     digitalWrite(BEEP_PIN, LOW);
@@ -444,7 +454,7 @@ void parachute_relief(double altitude, bool burst)
     {
         SERIAL_PRINTLN("you have passed 6000 m, parachute is closed ");
         parachute_engage = true;
-        EEPROM.update(EEPROM_PARACHUTE_ENGAGE, parachute_engage);
+        EEPROM.write(EEPROM_PARACHUTE_ENGAGE, parachute_engage);
     }
     // # additional condition
     if (burst && (altitude <= PARACHUTE_OPEN_ALTITUDE))
@@ -516,14 +526,14 @@ void loop()
     if (not burst)
     {
         is_burst(curr_alt, accel);
-        EEPROM.update(EEPROM_BURST, burst);
+        EEPROM.write(EEPROM_BURST, burst);
     }
     //  SERIAL_PRINT("burst: ");
     //  SERIAL_PRINTLN(burst);
     if (not parachute_rel)
     {
         parachute_relief(curr_alt, burst);
-        EEPROM.update(EEPROM_PARACHUTE_REL, parachute_rel);
+        EEPROM.write(EEPROM_PARACHUTE_REL, parachute_rel);
     }
 
     //serial_debug();
@@ -540,7 +550,7 @@ void loop()
             delay(2000);
             digitalWrite(BALLOON_BURST_PIN, LOW);
             keep_balloon_burst_power_pin_high = false;
-            EEPROM.update(EEPROM_keep_balloon_burst_power_pin_high, keep_balloon_burst_power_pin_high);
+            EEPROM.write(EEPROM_keep_balloon_burst_power_pin_high, keep_balloon_burst_power_pin_high);
            
         }
     }
@@ -559,7 +569,7 @@ void loop()
             delay(2000);
             digitalWrite(CHUTE_RLS_PIN, LOW);
             keep_parachute_rel_power_pin_high = false;
-            EEPROM.update(EEPROM_keep_parachute_rel_power_pin_high, keep_parachute_rel_power_pin_high);
+            EEPROM.write(EEPROM_keep_parachute_rel_power_pin_high, keep_parachute_rel_power_pin_high);
         }
 
         // BEEP BEEP every 200 milisecond
