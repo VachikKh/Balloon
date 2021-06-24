@@ -430,7 +430,7 @@ void is_burst(double altitude, double acc)
         SERIAL_PRINTLN("balloon released ");
         burst = true;
     }
-    // ithe balloon goes up and gets down but was not registered in accel event 
+    // ithe balloon goes up and gets down but was not registered in accel event
     if (parachute_engage && (altitude <= PARACHUTE_OPEN_ALTITUDE))
     {
         SERIAL_PRINTLN("parachute is open now ");
@@ -585,23 +585,18 @@ void loop()
         eeprom_write(EEPROM_PARACHUTE_REL, parachute_rel);
     }
 
-    //serial_debug();
-    if (burst)
+    serial_debug();
+    if (keep_balloon_burst_power_pin_high && burst)
     {
         //     keep power of balloon rel high 5 sec, then turn off
-
-        if (keep_balloon_burst_power_pin_high)
-        {
-            digitalWrite(BALLOON_BURST_LED_PIN, HIGH);
-            digitalWrite(BALLOON_BURST_LOG_PIN, HIGH);
-            digitalWrite(BALLOON_BURST_PIN, HIGH);
-            data_log();
-            delay(2000);
-            digitalWrite(BALLOON_BURST_PIN, LOW);
-            keep_balloon_burst_power_pin_high = false;
-            EEPROM.write(EEPROM_keep_balloon_burst_power_pin_high, keep_balloon_burst_power_pin_high);
-           
-        }
+        digitalWrite(BALLOON_BURST_LED_PIN, HIGH);
+        digitalWrite(BALLOON_BURST_LOG_PIN, HIGH);
+        digitalWrite(BALLOON_BURST_PIN, HIGH);
+        data_log();
+        delay(2000);
+        digitalWrite(BALLOON_BURST_PIN, LOW);
+        keep_balloon_burst_power_pin_high = false;
+        eeprom_write(EEPROM_keep_balloon_burst_power_pin_high, keep_balloon_burst_power_pin_high);
     }
 
     if (parachute_rel)
@@ -637,7 +632,7 @@ void loop()
     if (parachute_engage)
         digitalWrite(CHUTE_ENGAGE_LOG_PIN, HIGH);
 
-    if (log_count % 1 == 0)
+    if (log_count % 50 == 0)
     {
         data_log();
     }
