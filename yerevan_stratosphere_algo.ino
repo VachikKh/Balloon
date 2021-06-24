@@ -93,24 +93,72 @@ enum EEPROM_VAR
     EEPROM_keep_balloon_burst_power_pin_high,
     EEPROM_keep_parachute_rel_power_pin_high
 };
+//////////////////////////////////////////////////////////////////////
+//
+//  writing in eeprom specific way to withstand bitshifting         //
+//  we write one byte to store a boolean value, this means we       //
+//  store 8 sybols to represent 1 value, but we not just write all 1s
+//  or all 0s, but rather we write half 0s half 1ns
+//  to store True we write 11110000,
+//  and to store False we write 00001111
+/////////////////////////////////////////////////////////////
+void eeprom_write(int address, bool input_value)
+{ // custom eeprom write function
+    // to store True we write 11110000,
+    //  and to store False we write 00001111
+    // address is the where we want to store a value,
+    // input_value is the boolen value we want to store in the address
+
+    if (input_value)
+        EEPROM.update(address, 0xF0); // wrinting 16 bit value, 0xF) means we write 1111000
+    else
+        EEPROM.update(address, 0x0F); // 0x0F is 00001111
+}
+
+bool eeprom_read(int address)
+{ // this function reads from the address and converts the 8bit value to bool
+    // we read the hex value apply not opperation to second half and count how many 1s we have
+    // if we have more than 4 1s in the read value this means the saved value is 1 otherwise it is 0
+    // ex. if we write 00001111(False) and for some reason some bits have changed and it became  10011101
+    // we do 10010010 and count 1s they are 3 so our value is  False
+    unsigned read_value = EEPROM.read(address);
+    read_value = (read_value & 0xF0) | ((~read_value) & 0x0F);
+    unsigned sum = 0;
+    while (read_value)
+    {
+        // count last digits value and add 1
+        sum = sum + (read_value & 0x01);
+        //bit shift the value to right
+        read_value = read_value >> 1;
+    }
+
+    return (sum > 4);
+}
 
 void reset_state_vars_in_eeprom()
-{
-    // EEPROM.write(EEPROM_FILE_COUNT, 0);       // file_count
-    EEPROM.write(EEPROM_BURST, 0);            // burst = false;
-    EEPROM.write(EEPROM_PARACHUTE_ENGAGE, 0); // parachute_engage = false;
-    EEPROM.write(EEPROM_PARACHUTE_REL, 0);    // parachute_rel = false;
-    EEPROM.write(EEPROM_keep_balloon_burst_power_pin_high, 1);
-    EEPROM.write(EEPROM_keep_parachute_rel_power_pin_high, 1);
+{                                       //  write initial values to the eeprom
+    EEPROM.write(EEPROM_FILE_COUNT, 0); // file_count
+
+    eeprom_write(EEPROM_BURST, 0);            // burst = false;
+    eeprom_write(EEPROM_PARACHUTE_ENGAGE, 0); // parachute_engage = false;
+    eeprom_write(EEPROM_PARACHUTE_REL, 0);    // parachute_rel = false;
+    eeprom_write(EEPROM_keep_balloon_burst_power_pin_high, 1);
+    eeprom_write(EEPROM_keep_parachute_rel_power_pin_high, 1);
 }
 
 void read_state_vars_from_eeprom()
-{
-    burst = EEPROM.read(EEPROM_BURST);
-    parachute_engage = EEPROM.read(EEPROM_PARACHUTE_ENGAGE);
-    parachute_rel = EEPROM.read(EEPROM_PARACHUTE_REL);
-    keep_balloon_burst_power_pin_high = EEPROM.read(EEPROM_keep_balloon_burst_power_pin_high);
-    keep_parachute_rel_power_pin_high = EEPROM.read(EEPROM_keep_parachute_rel_power_pin_high);
+{ // read values from eeprom
+
+    burst = eeprom_read(EEPROM_BURST);
+    parachute_engage = eeprom_read(EEPROM_PARACHUTE_ENGAGE);
+    parachute_rel = eeprom_read(EEPROM_PARACHUTE_REL);
+    keep_balloon_burst_power_pin_high = eeprom_read(EEPROM_keep_balloon_burst_power_pin_high);
+    keep_parachute_rel_power_pin_high = eeprom_read(EEPROM_keep_parachute_rel_power_pin_high);
+    SERIAL_PRINTLN(burst);
+    SERIAL_PRINTLN(parachute_engage);
+    SERIAL_PRINTLN(parachute_rel);
+    SERIAL_PRINTLN(keep_balloon_burst_power_pin_high);
+    SERIAL_PRINTLN(keep_parachute_rel_power_pin_high);
 }
 
 void setup()
@@ -455,7 +503,7 @@ void parachute_relief(double altitude, bool burst)
     {
         SERIAL_PRINTLN("you have passed 6000 m, parachute is closed ");
         parachute_engage = true;
-        EEPROM.write(EEPROM_PARACHUTE_ENGAGE, parachute_engage);
+        eeprom_write(EEPROM_PARACHUTE_ENGAGE, parachute_engage);
     }
     // # additional condition
     if (burst && (altitude <= PARACHUTE_OPEN_ALTITUDE))
@@ -527,14 +575,14 @@ void loop()
     if (not burst)
     {
         is_burst(curr_alt, accel);
-        EEPROM.write(EEPROM_BURST, burst);
+        eeprom_write(EEPROM_BURST, burst);
     }
     //  SERIAL_PRINT("burst: ");
     //  SERIAL_PRINTLN(burst);
     if (not parachute_rel)
     {
         parachute_relief(curr_alt, burst);
-        EEPROM.write(EEPROM_PARACHUTE_REL, parachute_rel);
+        eeprom_write(EEPROM_PARACHUTE_REL, parachute_rel);
     }
 
     //serial_debug();
@@ -570,7 +618,7 @@ void loop()
             delay(2000);
             digitalWrite(CHUTE_RLS_PIN, LOW);
             keep_parachute_rel_power_pin_high = false;
-            EEPROM.write(EEPROM_keep_parachute_rel_power_pin_high, keep_parachute_rel_power_pin_high);
+            eeprom_write(EEPROM_keep_parachute_rel_power_pin_high, keep_parachute_rel_power_pin_high);
         }
 
         // BEEP BEEP every 200 milisecond
