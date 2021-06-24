@@ -72,7 +72,7 @@ double prev_acc = -1;
 
 // the array we want to find the median
 double acc_list[5] = {10, 10, 10, 10, 10};
-double altitude_list[5] = {0, 0, 0, 0, 0};
+double altitude_list[5];
 
 unsigned int curr_acc_ind = 0;
 unsigned int curr_alt_ind = 0;
@@ -375,13 +375,14 @@ void is_burst(double altitude, double acc)
     float median = 0;
 
     // ##############################
-    // # if the ballon goes too high#
+    // # if the balloon goes too high#
     // ##############################
     if (altitude >= BALLOON_BURST_ALTITUDE)
     {
         SERIAL_PRINTLN("balloon released ");
         burst = true;
     }
+    // ithe balloon goes up and gets down but was not registered in accel event 
     if (parachute_engage && (altitude <= PARACHUTE_OPEN_ALTITUDE))
     {
         SERIAL_PRINTLN("parachute is open now ");
