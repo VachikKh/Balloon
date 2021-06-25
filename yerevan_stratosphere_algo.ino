@@ -204,11 +204,11 @@ void setup()
     SERIAL_PRINT("Log file: ");
     wdt_reset();
 
-    String filename = getFilename();
+    filename = getFilename();
     SERIAL_PRINT(filename);
     if (logFile = SD.open(filename, FILE_WRITE))
     {
-        logFile.println("flight_millis,temp,baro,alti,acc_x,acc_y,acc_z,acc_3d,rot_x,rot_y,rot_z,acc_tmp,event_engage,event_burst,event_chute");
+        logFile.println("flight_millis,temp,baro,alti,acc_x,acc_y,acc_z,acc_3d,rot_x,rot_y,rot_z,acc_tmp,event_burst,event_chute, event_engage");
         logFile.close();
     }
     else
@@ -262,7 +262,6 @@ void setup()
     digitalWrite(BEEP_PIN, LOW);
     delay(2000);
     wdt_reset();
-    logFile = SD.open(filename, FILE_WRITE);
     digitalWrite(SETUP_LED_PIN, LOW);
     digitalWrite(CHARGE_PWR_PIN, HIGH);
 }
@@ -293,7 +292,7 @@ void data_log()
     mpu.getEvent(&a, &g, &mpu_temp);
     double accel_3d = sqrt(accel_3d_sum(a.acceleration.x, a.acceleration.y, a.acceleration.z));
 
-    //  logFile = SD.open(filename, FILE_WRITE);
+    logFile = SD.open(filename, FILE_WRITE);
     logFile.print(millis());
     logFile.print(",");
     logFile.print(realTemperature);
@@ -324,7 +323,7 @@ void data_log()
     logFile.print(",");
     logFile.print(parachute_engage);
     logFile.println();
-    logFile.flush();
+    logFile.close();
 }
 
 void serial_debug()
