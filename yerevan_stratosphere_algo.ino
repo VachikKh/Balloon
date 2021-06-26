@@ -91,16 +91,18 @@ enum EEPROM_VAR
     EEPROM_keep_balloon_burst_power_pin_high,
     EEPROM_keep_parachute_rel_power_pin_high
 };
+
 //////////////////////////////////////////////////////////////////////
+//								    //
+//  Saves a boolean value in an eeprom byte in a way immune to
+//  random bit-flip errors (that could be caused by radiation).
+//  A boolean value of true is written as 11110000, and false is
+//  written as 00001111.
 //
-//  writing in eeprom specific way to withstand bitshifting         //
-//  we write one byte to store a boolean value, this means we       //
-//  store 8 sybols to represent 1 value, but we not just write all 1s
-//  or all 0s, but rather we write half 0s half 1ns
-//  to store True we write 11110000,
-//  and to store False we write 00001111
+//  The function name is decoded as "WRITE a BOOL into EEPROM with
+//  REDundancy"
 /////////////////////////////////////////////////////////////
-void eeprom_write(int address, bool input_value)
+void eeprom_write_red_bool(int address, bool input_value)
 { // custom eeprom write function
     // to store True we write 11110000,
     //  and to store False we write 00001111
@@ -113,7 +115,7 @@ void eeprom_write(int address, bool input_value)
         EEPROM.update(address, 0x0F); // 0x0F is 00001111
 }
 
-bool eeprom_read(int address)
+bool eeprom_read_red_bool(int address)
 { // this function reads from the address and converts the 8bit value to bool
     // we read the hex value apply not opperation to second half and count how many 1s we have
     // if we have more than 4 1s in the read value this means the saved value is 1 otherwise it is 0
@@ -137,21 +139,21 @@ void reset_state_vars_in_eeprom()
 {                                       //  write initial values to the eeprom
     EEPROM.write(EEPROM_FILE_COUNT, 0); // file_count
 
-    eeprom_write(EEPROM_BURST, 0);            // burst = false;
-    eeprom_write(EEPROM_PARACHUTE_ENGAGE, 0); // parachute_engage = false;
-    eeprom_write(EEPROM_PARACHUTE_REL, 0);    // parachute_rel = false;
-    eeprom_write(EEPROM_keep_balloon_burst_power_pin_high, 1);
-    eeprom_write(EEPROM_keep_parachute_rel_power_pin_high, 1);
+    eeprom_write_red_bool(EEPROM_BURST, 0);            // burst = false;
+    eeprom_write_red_bool(EEPROM_PARACHUTE_ENGAGE, 0); // parachute_engage = false;
+    eeprom_write_red_bool(EEPROM_PARACHUTE_REL, 0);    // parachute_rel = false;
+    eeprom_write_red_bool(EEPROM_keep_balloon_burst_power_pin_high, 1);
+    eeprom_write_red_bool(EEPROM_keep_parachute_rel_power_pin_high, 1);
 }
 
 void read_state_vars_from_eeprom()
 { // read values from eeprom
 
-    burst = eeprom_read(EEPROM_BURST);
-    parachute_engage = eeprom_read(EEPROM_PARACHUTE_ENGAGE);
-    parachute_rel = eeprom_read(EEPROM_PARACHUTE_REL);
-    keep_balloon_burst_power_pin_high = eeprom_read(EEPROM_keep_balloon_burst_power_pin_high);
-    keep_parachute_rel_power_pin_high = eeprom_read(EEPROM_keep_parachute_rel_power_pin_high);
+    burst = eeprom_read_red_bool(EEPROM_BURST);
+    parachute_engage = eeprom_read_red_bool(EEPROM_PARACHUTE_ENGAGE);
+    parachute_rel = eeprom_read_red_bool(EEPROM_PARACHUTE_REL);
+    keep_balloon_burst_power_pin_high = eeprom_read_red_bool(EEPROM_keep_balloon_burst_power_pin_high);
+    keep_parachute_rel_power_pin_high = eeprom_read_red_bool(EEPROM_keep_parachute_rel_power_pin_high);
     SERIAL_PRINTLN(burst);
     SERIAL_PRINTLN(parachute_engage);
     SERIAL_PRINTLN(parachute_rel);
@@ -500,7 +502,7 @@ void parachute_relief(double altitude, bool burst)
     {
         SERIAL_PRINTLN("you have passed 6000 m, parachute is closed ");
         parachute_engage = true;
-        eeprom_write(EEPROM_PARACHUTE_ENGAGE, parachute_engage);
+        eeprom_write_red_bool(EEPROM_PARACHUTE_ENGAGE, parachute_engage);
     }
     // # additional condition
     if (burst && (altitude <= PARACHUTE_OPEN_ALTITUDE))
@@ -572,14 +574,14 @@ void loop()
     if (not burst)
     {
         is_burst(curr_alt, accel);
-        eeprom_write(EEPROM_BURST, burst);
+        eeprom_write_red_bool(EEPROM_BURST, burst);
     }
     //  SERIAL_PRINT("burst: ");
     //  SERIAL_PRINTLN(burst);
     if (not parachute_rel)
     {
         parachute_relief(curr_alt, burst);
-        eeprom_write(EEPROM_PARACHUTE_REL, parachute_rel);
+        eeprom_write_red_bool(EEPROM_PARACHUTE_REL, parachute_rel);
     }
 
     serial_debug();
@@ -593,7 +595,7 @@ void loop()
         delay(2000);
         digitalWrite(BALLOON_BURST_PIN, LOW);
         keep_balloon_burst_power_pin_high = false;
-        eeprom_write(EEPROM_keep_balloon_burst_power_pin_high, keep_balloon_burst_power_pin_high);
+        eeprom_write_red_bool(EEPROM_keep_balloon_burst_power_pin_high, keep_balloon_burst_power_pin_high);
     }
 
     if (parachute_rel)
@@ -610,7 +612,7 @@ void loop()
             delay(2000);
             digitalWrite(CHUTE_RLS_PIN, LOW);
             keep_parachute_rel_power_pin_high = false;
-            eeprom_write(EEPROM_keep_parachute_rel_power_pin_high, keep_parachute_rel_power_pin_high);
+            eeprom_write_red_bool(EEPROM_keep_parachute_rel_power_pin_high, keep_parachute_rel_power_pin_high);
         }
 
         // BEEP BEEP every 200 milisecond
